@@ -39,11 +39,6 @@ if (array_key_exists('f', $_REQUEST) && $_REQUEST['f'] == 'json') {
         <title>WebPagetest Domain Breakdown<?php echo $testLabel; ?></title>
         <?php $gaTemplate = 'Domain Breakdown'; include ('head.inc'); ?>
         <style type="text/css">
-            td {
-                text-align:center; 
-                vertical-align:middle; 
-                padding:1em;
-            }
 
             div.bar {
                 height:12px; 
@@ -51,12 +46,6 @@ if (array_key_exists('f', $_REQUEST) && $_REQUEST['f'] == 'json') {
                 margin-bottom:auto;
             }
 
-            td.legend {
-                white-space:nowrap; 
-                text-align:left; 
-                vertical-align:top; 
-                padding:0;
-            }
             h1 {
               text-align: center;
               font-size: 2.5em;
@@ -128,8 +117,11 @@ if (array_key_exists('f', $_REQUEST) && $_REQUEST['f'] == 'json') {
         </div>
         <a href="#top" id="back_to_top">Back to top</a>
 
-        <!--Load the AJAX API-->
-        <script type="text/javascript" src="//www.google.com/jsapi"></script>
+		<script type="text/javascript" src="/js/d3/d3.js"></script>
+		<script type="text/javascript" src="/js/c3-0.6.8/c3.js"></script>
+		<script type="text/javascript" src="/js/charting.js"></script>
+		<link rel="stylesheet" href="/js/c3-0.6.8/c3.css" />
+		<link rel="stylesheet" href="/css/tables.css" />
         <?php
         if ($isMultistep) {
           echo '<script type="text/javascript" src="/js/jk-navigation.js"></script>';
@@ -142,10 +134,6 @@ if (array_key_exists('f', $_REQUEST) && $_REQUEST['f'] == 'json') {
         }
         ?>
         <script type="text/javascript">
-    
-        // Load the Visualization API and the table package.
-        google.load('visualization', '1', {'packages':['table', 'corechart']});
-        google.setOnLoadCallback(initJS);
 
         function initJS() {
           <?php if ($isMultistep) { ?>
@@ -154,67 +142,34 @@ if (array_key_exists('f', $_REQUEST) && $_REQUEST['f'] == 'json') {
           if (window.location.hash.length > 0) {
             accordionHandler.handleHash();
           } else {
-            accordionHandler.toggleAccordion($('#breakdown_fv_step1'), true);
+            accordionHandler.toggleAccordion('#breakdown_fv_step1', true);
           }
           <?php } else { ?>
-            drawTable($('#<?php echo $snippetFv->getBreakdownId(); ?>'));
+            drawTable('#<?php echo $snippetFv->getBreakdownId(); ?>');
             <?php if ($repeatViewResults) { ?>
-            drawTable($('#<?php echo $snippetRv->getBreakdownId(); ?>'));
+            drawTable('#<?php echo $snippetRv->getBreakdownId(); ?>');
             <?php } ?>
           <?php } ?>
         }
 
-        function drawTable(parentNode) {
-            parentNode = $(parentNode);
+        function drawTable(parentNodeID) {
+
+
+			var parentNode = $(parentNodeID);
             var breakdownId = parentNode.find(".breakdownFrame").data('breakdown-id');
             if (!breakdownId) {
-                return;
-            }
+				return;
+			}
             var breakdown = wptDomainBreakdownData[breakdownId];
-            var numData = breakdown.length;
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Domain');
-            data.addColumn('number', 'Requests');
-            data.addColumn('number', 'Bytes');
-            data.addRows(numData);
-            var requests = new google.visualization.DataTable();
-            requests.addColumn('string', 'Domain');
-            requests.addColumn('number', 'Requests');
-            requests.addRows(numData);
-            var bytes = new google.visualization.DataTable();
-            bytes.addColumn('string', 'Domain');
-            bytes.addColumn('number', 'Bytes');
-            bytes.addRows(numData);
-            for (var i = 0; i < numData; i++) {
-                data.setValue(i, 0, String(breakdown[i]['domain']));
-                data.setValue(i, 1, breakdown[i]['requests']);
-                data.setValue(i, 2, breakdown[i]['bytes']);
-                requests.setValue(i, 0, String(breakdown[i]['domain']));
-                requests.setValue(i, 1, breakdown[i]['requests']);
-                bytes.setValue(i, 0, String(breakdown[i]['domain']));
-                bytes.setValue(i, 1, breakdown[i]['bytes']);
-            }
 
-            var viewRequests = new google.visualization.DataView(data);
-            viewRequests.setColumns([0, 1]);
-
-            var tableRequests = new google.visualization.Table(parentNode.find('div.tableRequests')[0]);
-            tableRequests.draw(viewRequests, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-
-            var viewBytes = new google.visualization.DataView(data);
-            viewBytes.setColumns([0, 2]);
-
-            var tableBytes = new google.visualization.Table(parentNode.find('div.tableBytes')[0]);
-            tableBytes.draw(viewBytes, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-
-            var pieRequests = new google.visualization.PieChart(parentNode.find('div.pieRequests')[0]);
-            google.visualization.events.addListener(pieRequests, 'ready', function(){markUserTime('aft.Requests Pie');});
-            pieRequests.draw(requests, {width: 450, height: 300, title: 'Requests'});
-
-            var pieBytes = new google.visualization.PieChart(parentNode.find('div.pieBytes')[0]);
-            google.visualization.events.addListener(pieBytes, 'ready', function(){markUserTime('aft.Bytes Pie');});
-            pieBytes.draw(bytes, {width: 450, height: 300, title: 'Bytes'});
+            drawDataTable("div.tableRequests", ["Domain", "Requests", "Bytes"], breakdown.map(function(b) {
+            	return [b.domain, b.requests, b.bytes];
+			}));
+            drawPieChart("div.pieRequests", "Requests", breakdown.map(function(b) { return [b.domain, b.requests]; }));
+            drawPieChart("div.pieBytes", "Bytes", breakdown.map(function(b) { return [b.domain, b.bytes]; }));
         }
+
+        initJS();
         </script>
     </body>
 </html>

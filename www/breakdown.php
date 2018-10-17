@@ -123,7 +123,11 @@ if(!$testInfo->isFirstViewOnly()) {
         <a href="#top" id="back_to_top">Back to top</a>
 
         <!--Load the AJAX API-->
-        <script type="text/javascript" src="//www.google.com/jsapi"></script>
+		<script type="text/javascript" src="/js/d3/d3.js"></script>
+		<script type="text/javascript" src="/js/c3-0.6.8/c3.js"></script>
+		<script type="text/javascript" src="/js/charting.js"></script>
+		<link rel="stylesheet" href="/js/c3-0.6.8/c3.css" />
+		<link rel="stylesheet" href="/css/tables.css" />
         <?php
         if ($isMultistep) {
             echo '<script type="text/javascript" src="/js/jk-navigation.js"></script>';
@@ -136,11 +140,6 @@ if(!$testInfo->isFirstViewOnly()) {
         }
         ?>
         <script type="text/javascript">
-    
-        // Load the Visualization API and the table package.
-        google.load('visualization', '1', {'packages':['table', 'corechart']});
-        google.setOnLoadCallback(initJS);
-
         function initJS() {
             <?php if ($isMultistep) { ?>
                 accordionHandler.connect();
@@ -169,54 +168,16 @@ if(!$testInfo->isFirstViewOnly()) {
                 return;
             }
             var breakdown = wptBreakdownData[breakdownId];
-            var numData = breakdown.length;
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'MIME Type');
-            data.addColumn('number', 'Requests');
-            data.addColumn('number', 'Bytes');
-            data.addColumn('number', 'Uncompressed');
-            data.addRows(numData);
-            var requests = new google.visualization.DataTable();
-            requests.addColumn('string', 'Content Type');
-            requests.addColumn('number', 'Requests');
-            requests.addRows(numData);
-            var colors = new Array();
-            var bytes = new google.visualization.DataTable();
-            bytes.addColumn('string', 'Content Type');
-            bytes.addColumn('number', 'Bytes');
-            bytes.addRows(numData);
-            for (var i = 0; i < numData; i++) {
-                data.setValue(i, 0, breakdown[i]['type']);
-                data.setValue(i, 1, breakdown[i]['requests']);
-                data.setValue(i, 2, breakdown[i]['bytes']);
-                data.setValue(i, 3, breakdown[i]['bytesUncompressed']);
-                requests.setValue(i, 0, breakdown[i]['type']);
-                requests.setValue(i, 1, breakdown[i]['requests']);
-                bytes.setValue(i, 0, breakdown[i]['type']);
-                bytes.setValue(i, 1, breakdown[i]['bytes']);
-                colors.push(rgb2html(breakdown[i]['color']));
-            }
 
-            var viewRequests = new google.visualization.DataView(data);
-            viewRequests.setColumns([0, 1]);
-            
-            var tableRequests = new google.visualization.Table(parentNode.find('div.tableRequests')[0]);
-            tableRequests.draw(viewRequests, {showRowNumber: false, sortColumn: 1, sortAscending: false});
+			// Create the requests per domain table
+			drawDataTable("div.tableRequests", ["Type", "Requests", "Bytes", "Uncompressed Bytes"], breakdown.map(function(typeData) {
+				return [typeData.type, typeData.requests, typeData.bytes, typeData.bytesUncompressed];
+			}));
 
-            var viewBytes = new google.visualization.DataView(data);
-            viewBytes.setColumns([0, 2, 3]);
-            
-            var tableBytes = new google.visualization.Table(parentNode.find('div.tableBytes')[0]);
-            tableBytes.draw(viewBytes, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-            
-            var pieRequests = new google.visualization.PieChart(parentNode.find('div.pieRequests')[0]);
-            google.visualization.events.addListener(pieRequests, 'ready', function(){markUserTime('aft.Requests Pie');});
-            pieRequests.draw(requests, {width: 450, height: 300, title: 'Requests', colors: colors});
-
-            var pieBytes = new google.visualization.PieChart(parentNode.find('div.pieBytes')[0]);
-            google.visualization.events.addListener(pieBytes, 'ready', function(){markUserTime('aft.Bytes Pie');});
-            pieBytes.draw(bytes, {width: 450, height: 300, title: 'Bytes', colors: colors});
+			drawPieChart("div.pieRequests", "Requests", breakdown.map(function(b) { return [b.type, b.requests]; }));
+			drawPieChart("div.pieBytes", "Bytes", breakdown.map(function(b) { return [b.type, b.bytes]; }));
         }
+        initJS();
         </script>
     </body>
 </html>

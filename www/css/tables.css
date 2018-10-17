@@ -1,0 +1,11 @@
+table.standard-table {
+	margin: auto;
+	width: 100%;
+	border: 1px solid lightgrey;
+
+}
+
+th.standard-table {
+	background-color: #bbbbff;
+	font-weight: bold;
+}

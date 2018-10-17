@@ -182,64 +182,23 @@ foreach ($mapping as $item => $value) {
         
         <?php include('footer.inc'); ?>
 
-        <!--Load the AJAX API-->
 		<script type="text/javascript" src="/js/d3/d3.js"></script>
 		<script type="text/javascript" src="/js/c3-0.6.8/c3.js"></script>
+		<script type="text/javascript" src="/js/charting.js"></script>
 		<link rel="stylesheet" href="/js/c3-0.6.8/c3.css" />
 		<link rel="stylesheet" href="/css/tables.css" />
         <script type="text/javascript">
 
-        function drawDataTable(selector, headers, data) {
-        	var table = d3.select(selector)
-				.append("table")
-				.attr("class", "standard-table");
-        	var thead = table.append("thead");
-        	var tbody = table.append("tbody");
-        	thead.append("tr")
-				.selectAll("th")
-				.data(headers)
-				.enter()
-				.append("th")
-				.text(function(header) { return header; });
-        	var rows = tbody.selectAll("tr")
-				.data(data)
-				.enter()
-				.append("tr")
-					.attr("class", "standard-table");
-        	var cells = rows.selectAll("td")
-				.data(function(row) { return row; })
-				.enter()
-				.append("td")
-					.attr("class", "standard-table")
-					.text(function(row) { return row; });
-		}
-
-		function drawPieChart(selector, title, data) {
-			var colorMapping = <?php echo(json_encode($colorMapping)); ?>;
-        	c3.generate({
-				bindto: selector,
-				data: {
-					columns: data,
-					type: "donut",
-					colors: colorMapping
-				},
-				donut: {
-					title: title
-				},
-				legend: {
-					show: false
-				}
-			});
-		}
 
         function drawTable() {
+        	var colorMap = 	<?php echo(json_encode($colorMapping)); ?>;
         	var groups = Object.entries(<?php echo(json_encode($groups)); ?>);
         	var processing = Object.entries(<?php echo(json_encode($processing)); ?>);
 
-			drawPieChart("div#pieGroups", "Time per category", groups.filter(function(group) { return group[0] !== "Idle"; }));
-			drawPieChart("div#pieEvents", "Time per processing event", processing.filter(function(event) { return event[0] !== "Idle"; }));
-			drawPieChart("div#pieGroupsIdle", "Time per category", groups);
-			drawPieChart("div#pieEventsIdle", "Time per processing event", processing);
+			drawPieChart("div#pieGroups", "Time per category", groups.filter(function(group) { return group[0] !== "Idle"; }), colorMap);
+			drawPieChart("div#pieEvents", "Time per processing event", processing.filter(function(event) { return event[0] !== "Idle"; }), colorMap);
+			drawPieChart("div#pieGroupsIdle", "Time per category", groups, colorMap);
+			drawPieChart("div#pieEventsIdle", "Time per processing event", processing, colorMap);
 
 			drawDataTable("#tableGroups", ["Category", "Time (ms)"], groups.filter(function(group) { return group[0] !== "Idle"; }));
 			drawDataTable("#tableEvents", ["Event", "Time (ms)"], processing.filter(function(event) { return event[0] !== "Idle"; }));

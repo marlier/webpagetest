@@ -302,59 +302,45 @@ $page_description = "Website performance test result$testLabel.";
         $breakdown = $resultTables->getBreakdown();
         if ($breakdown) {
         ?>
-          <script type="text/javascript" src="//www.google.com/jsapi"></script>
+			<script type="text/javascript" src="/js/d3/d3.js"></script>
+			<script type="text/javascript" src="/js/c3-0.6.8/c3.js"></script>
+			<script type="text/javascript" src="/js/charting.js"></script>
+			<link rel="stylesheet" href="/js/c3-0.6.8/c3.css" />
+			<link rel="stylesheet" href="/css/tables.css" />
           <script type="text/javascript">
           <?php
           echo 'var wptBreakdown=' . json_encode($breakdown) . ";\n";
           ?>
 
-          google.load("visualization", "1", {packages:["corechart"]});
-          google.setOnLoadCallback(drawCharts);
-            function RGBtoHex(R,G,B) {return toHex(R)+toHex(G)+toHex(B)}
-            function toHex(N) {
-                if (N==null) return "00";
-                N=parseInt(N); if (N==0 || isNaN(N)) return "00";
-                N=Math.max(0,N); N=Math.min(N,255); N=Math.round(N);
-                return "0123456789ABCDEF".charAt((N-N%16)/16)
-                  + "0123456789ABCDEF".charAt(N%16);
+		function RGBtoHex(R,G,B) {return toHex(R)+toHex(G)+toHex(B)}
+		function toHex(N) {
+			if (N==null) return "00";
+			N=parseInt(N); if (N==0 || isNaN(N)) return "00";
+			N=Math.max(0,N); N=Math.min(N,255); N=Math.round(N);
+			return "0123456789ABCDEF".charAt((N-N%16)/16)
+			  + "0123456789ABCDEF".charAt(N%16);
             }
           function drawCharts() {
             for (index in wptBreakdown) {
-                var bytes = new google.visualization.DataTable();
-                bytes.addColumn('string', 'Content Type');
-                bytes.addColumn('number', 'Bytes');
-                var bytesColors = new Array();
-                for (i in wptBreakdown[index].data) {
-                    bytes.addRow([i, wptBreakdown[index].data[i].bytes]);
-                    var color = RGBtoHex(wptBreakdown[index].data[i].color[0], wptBreakdown[index].data[i].color[1], wptBreakdown[index].data[i].color[2]);
-                    bytesColors.push('#' + color);
-                }
-                var bytesOptions = {
-                  width: 370, height: 200,
-                  title: 'Bytes',
-                  colors: bytesColors
-                };
-                var bytesChart = new google.visualization.PieChart(document.getElementById('bytes_' + wptBreakdown[index].run));
-                bytesChart.draw(bytes, bytesOptions);
+				var bytesColors = {}, requestsColors = {};
+				for (i in wptBreakdown[index].data) {
+					var color = RGBtoHex(wptBreakdown[index].data[i].color[0], wptBreakdown[index].data[i].color[1], wptBreakdown[index].data[i].color[2]);
+					bytesColors[i] = "#" + color;
+				}
+				for (i in wptBreakdown[index].data) {
+					var color = RGBtoHex(wptBreakdown[index].data[i].color[0], wptBreakdown[index].data[i].color[1], wptBreakdown[index].data[i].color[2]);
+					requestsColors[i] = "#" + color;
+				}
 
-                var requests = new google.visualization.DataTable();
-                requests.addColumn('string', 'Content Type');
-                requests.addColumn('number', 'Requests');
-                var requestsColors = new Array();
-                for (i in wptBreakdown[index].data) {
-                    requests.addRow([i, wptBreakdown[index].data[i].requests]);
-                    var color = RGBtoHex(wptBreakdown[index].data[i].color[0], wptBreakdown[index].data[i].color[1], wptBreakdown[index].data[i].color[2]);
-                    requestsColors.push('#' + color);
-                }
-                var requestsOptions = {
-                  width: 370, height: 200,
-                  title: 'Requests',
-                  colors: requestsColors
-                };
-                var requestsChart = new google.visualization.PieChart(document.getElementById('requests_' + wptBreakdown[index].run));
-                requestsChart.draw(requests, requestsOptions);
+				drawPieChart("#bytes_" + wptBreakdown[index].run, "Bytes", Object.entries(wptBreakdown[index].data).map(function(typeData) {
+					return [typeData[0], typeData[1].bytes];
+				}), bytesColors);
+				drawPieChart("#requests_" + wptBreakdown[index].run, "Requests", Object.entries(wptBreakdown[index].data).map(function(typeData) {
+					return [typeData[0], typeData[1].requests];
+				}), requestsColors);
             }
           }
+          drawCharts();
           </script>
         <?php
         } // $breakdown
