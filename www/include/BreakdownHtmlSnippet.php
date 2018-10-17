@@ -30,11 +30,8 @@ abstract class BreakdownHtmlSnippet {
               </td>
           </tr>
           <tr>
-              <td>
+              <td colspan="2">
                   <div class="tableRequests" style="width: 100%;"></div>
-              </td>
-              <td>
-                  <div class="tableBytes" style="width: 100%;"></div>
               </td>
           </tr>
       </table>

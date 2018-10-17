@@ -145,8 +145,8 @@ class TestResultsHtmlTables {
     $span = $tableColumns - 1;
     $out .= "<td align=\"left\" valign=\"middle\" colspan=\"$span\">";
     $run = $stepResult->getRunNumber();
-    $out .= "<table><tr><td style=\"border:none;\"><div id=\"requests_$run\"></div></td>";
-    $out .= "<td style=\"border:none;\"><div id=\"bytes_$run\"></div></td></tr></table>";
+    $out .= "<table style=\"width: 100%;\"><tr style=\"width:100%;\"><td style=\"border:none; width: 50%;\"><div id=\"requests_$run\"></div></td>";
+    $out .= "<td style=\"border:none; width: 50%;\"><div id=\"bytes_$run\"></div></td></tr></table>";
     $out .= "</td>\n";
 
     $out .= "</tr>\n";
