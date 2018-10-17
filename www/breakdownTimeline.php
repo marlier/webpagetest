@@ -8,6 +8,82 @@ require_once('page_data.inc');
 $page_keywords = array('Timeline Breakdown','Webpagetest','Website Speed Test','Page Speed');
 $page_description = "Chrome main thread processing breakdown$testLabel";
 
+$mapping = array('EvaluateScript' => 'Scripting',
+	'v8.compile' => 'Scripting',
+	'FunctionCall' => 'Scripting',
+	'GCEvent' => 'Scripting',
+	'TimerFire' => 'Scripting',
+	'EventDispatch' => 'Scripting',
+	'TimerInstall' => 'Scripting',
+	'TimerRemove' => 'Scripting',
+	'XHRLoad' => 'Scripting',
+	'XHRReadyStateChange' => 'Scripting',
+	'MinorGC' => 'Scripting',
+	'MajorGC' => 'Scripting',
+	'FireAnimationFrame' => 'Scripting',
+	'ThreadState::completeSweep' => 'Scripting',
+	'Heap::collectGarbage' => 'Scripting',
+	'ThreadState::performIdleLazySweep' => 'Scripting',
+
+	'Layout' => 'Layout',
+	'UpdateLayoutTree' => 'Layout',
+	'RecalculateStyles' => 'Layout',
+	'ParseAuthorStyleSheet' => 'Layout',
+	'ScheduleStyleRecalculation' => 'Layout',
+	'InvalidateLayout' => 'Layout',
+
+	'Paint' => 'Painting',
+	'DecodeImage' => 'Painting',
+	'Decode Image' => 'Painting',
+	'ResizeImage' => 'Painting',
+	'CompositeLayers' => 'Painting',
+	'Rasterize' => 'Painting',
+	'PaintImage' => 'Painting',
+	'PaintSetup' => 'Painting',
+	'ImageDecodeTask' => 'Painting',
+	'GPUTask' => 'Painting',
+	'SetLayerTreeId' => 'Painting',
+	'layerId' => 'Painting',
+	'UpdateLayer' => 'Painting',
+	'UpdateLayerTree' => 'Painting',
+	'Draw LazyPixelRef' => 'Painting',
+	'Decode LazyPixelRef' => 'Painting',
+
+	'ParseHTML' => 'Loading',
+	'ResourceReceivedData' => 'Loading',
+	'ResourceReceiveResponse' => 'Loading',
+	'ResourceSendRequest' => 'Loading',
+	'ResourceFinish' => 'Loading',
+	'CommitLoad' => 'Loading',
+
+	'Idle' => 'Idle');
+
+$groups = array('Scripting' => 0, 'Layout' => 0, 'Painting' => 0, 'Loading' => 0, 'Other' => 0, 'Idle' => 0);
+$groupColors = array('Scripting' => '#f1c453',
+	'Layout' => '#9a7ee6',
+	'Painting' => '#71b363',
+	'Loading' => '#70a2e3',
+	'Other' => '#f16161',
+	'Idle' => '#cbd1d9');
+
+$processing = GetDevToolsCPUTime($testPath, $run, $cached);
+if (isset($processing)) {
+	arsort($processing);
+
+	if (!array_key_exists('Idle', $processing))
+		$processing['Idle'] = 0;
+	foreach ($processing as $type => $time) {
+		$group = 'Other';
+		if (array_key_exists($type, $mapping))
+			$group = $mapping[$type];
+		$groups[$group] += $time;
+	}
+}
+$colorMapping = array();
+foreach ($mapping as $item => $value) {
+	$colorMapping[$item] = $groupColors[$value];
+}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -50,74 +126,6 @@ $page_description = "Chrome main thread processing breakdown$testLabel";
             $tab = 'Test Result';
             $subtab = 'Processing Breakdown';
             include 'header.inc';
-            $processing = GetDevToolsCPUTime($testPath, $run, $cached);
-            if (isset($processing)) {
-              arsort($processing);
-              $mapping = array('EvaluateScript' => 'Scripting',
-                               'v8.compile' => 'Scripting',
-                               'FunctionCall' => 'Scripting',
-                               'GCEvent' => 'Scripting',
-                               'TimerFire' => 'Scripting',
-                               'EventDispatch' => 'Scripting',
-                               'TimerInstall' => 'Scripting',
-                               'TimerRemove' => 'Scripting',
-                               'XHRLoad' => 'Scripting',
-                               'XHRReadyStateChange' => 'Scripting',
-                               'MinorGC' => 'Scripting',
-                               'MajorGC' => 'Scripting',
-                               'FireAnimationFrame' => 'Scripting',
-                               'ThreadState::completeSweep' => 'Scripting',
-                               'Heap::collectGarbage' => 'Scripting',
-                               'ThreadState::performIdleLazySweep' => 'Scripting',
-
-                               'Layout' => 'Layout',
-                               'UpdateLayoutTree' => 'Layout',
-                               'RecalculateStyles' => 'Layout',
-                               'ParseAuthorStyleSheet' => 'Layout',
-                               'ScheduleStyleRecalculation' => 'Layout',
-                               'InvalidateLayout' => 'Layout',
-
-                               'Paint' => 'Painting',
-                               'DecodeImage' => 'Painting',
-                               'Decode Image' => 'Painting',
-                               'ResizeImage' => 'Painting',
-                               'CompositeLayers' => 'Painting',
-                               'Rasterize' => 'Painting',
-                               'PaintImage' => 'Painting',
-                               'PaintSetup' => 'Painting',
-                               'ImageDecodeTask' => 'Painting',
-                               'GPUTask' => 'Painting',
-                               'SetLayerTreeId' => 'Painting',
-                               'layerId' => 'Painting',
-                               'UpdateLayer' => 'Painting',
-                               'UpdateLayerTree' => 'Painting',
-                               'Draw LazyPixelRef' => 'Painting',
-                               'Decode LazyPixelRef' => 'Painting',
-
-                               'ParseHTML' => 'Loading',
-                               'ResourceReceivedData' => 'Loading',
-                               'ResourceReceiveResponse' => 'Loading',
-                               'ResourceSendRequest' => 'Loading',
-                               'ResourceFinish' => 'Loading',
-                               'CommitLoad' => 'Loading',
-
-                               'Idle' => 'Idle');
-              $groups = array('Scripting' => 0, 'Layout' => 0, 'Painting' => 0, 'Loading' => 0, 'Other' => 0, 'Idle' => 0);
-              $groupColors = array('Scripting' => '#f1c453',
-                                   'Layout' => '#9a7ee6',
-                                   'Painting' => '#71b363',
-                                   'Loading' => '#70a2e3',
-                                   'Other' => '#f16161',
-                                   'Idle' => '#cbd1d9');
-              if (!array_key_exists('Idle', $processing))
-                $processing['Idle'] = 0;
-              foreach ($processing as $type => $time) {
-                $group = 'Other';
-                if (array_key_exists($type, $mapping))
-                  $group = $mapping[$type];
-                $groups[$group] += $time;
-              }
-            }
             ?>
             
             <table align="center">
@@ -175,133 +183,70 @@ $page_description = "Chrome main thread processing breakdown$testLabel";
         <?php include('footer.inc'); ?>
 
         <!--Load the AJAX API-->
-        <script type="text/javascript" src="//www.google.com/jsapi"></script>
+		<script type="text/javascript" src="/js/d3/d3.js"></script>
+		<script type="text/javascript" src="/js/c3-0.6.8/c3.js"></script>
+		<link rel="stylesheet" href="/js/c3-0.6.8/c3.css" />
+		<link rel="stylesheet" href="/css/tables.css" />
         <script type="text/javascript">
-    
-        // Load the Visualization API and the table package.
-        google.load('visualization', '1', {'packages':['table', 'corechart']});
-        google.setOnLoadCallback(drawTable);
+
+        function drawDataTable(selector, headers, data) {
+        	var table = d3.select(selector)
+				.append("table")
+				.attr("class", "standard-table");
+        	var thead = table.append("thead");
+        	var tbody = table.append("tbody");
+        	thead.append("tr")
+				.selectAll("th")
+				.data(headers)
+				.enter()
+				.append("th")
+				.text(function(header) { return header; });
+        	var rows = tbody.selectAll("tr")
+				.data(data)
+				.enter()
+				.append("tr")
+					.attr("class", "standard-table");
+        	var cells = rows.selectAll("td")
+				.data(function(row) { return row; })
+				.enter()
+				.append("td")
+					.attr("class", "standard-table")
+					.text(function(row) { return row; });
+		}
+
+		function drawPieChart(selector, title, data) {
+			var colorMapping = <?php echo(json_encode($colorMapping)); ?>;
+        	c3.generate({
+				bindto: selector,
+				data: {
+					columns: data,
+					type: "donut",
+					colors: colorMapping
+				},
+				donut: {
+					title: title
+				},
+				legend: {
+					show: false
+				}
+			});
+		}
+
         function drawTable() {
-            var groups = new google.visualization.DataTable();
-            groups.addColumn('string', 'Category');
-            groups.addColumn('number', 'Time (ms)');
-            groups.addRows(<?php echo (count($groups) - 1); ?>);
-            var groupColors = new Array();
+        	var groups = Object.entries(<?php echo(json_encode($groups)); ?>);
+        	var processing = Object.entries(<?php echo(json_encode($processing)); ?>);
 
-            var events = new google.visualization.DataTable();
-            events.addColumn('string', 'Event');
-            events.addColumn('number', 'Time (ms)');
-            events.addRows(<?php echo (count($processing) - 1); ?>);
-            var eventColors = new Array();
-            <?php
-            $index = 0;
-            if (isset($groups) && is_array($groups) && count($groups)) {
-              foreach($groups as $type => $time)
-              {
-                if ($type != 'Idle') {
-                  echo "groups.setValue($index, 0, '$type');\n";
-                  echo "groups.setValue($index, 1, $time);\n";
-                  $color = $groupColors[$type];
-                  echo "groupColors.push('$color');\n";
-                  $index++;
-                }
-              }
-            }
-            $index = 0;
-            if (isset($processing) && is_array($processing) && count($processing)) {
-              foreach($processing as $type => $time) {
-                if ($type != 'Idle') {
-                  echo "events.setValue($index, 0, '$type');\n";
-                  echo "events.setValue($index, 1, $time);\n";
-                  $group = 'Other';
-                  if (array_key_exists($type, $mapping))
-                    $group = $mapping[$type];
-                  $color = $groupColors[$group];
-                  echo "eventColors.push('$color');\n";
-                  $index++;
-                }
-              }
-            }
-            ?>
-            var viewGroups = new google.visualization.DataView(groups);
-            viewGroups.setColumns([0, 1]);
-            
-            var tableGroups = new google.visualization.Table(document.getElementById('tableGroups'));
-            tableGroups.draw(viewGroups, {showRowNumber: false, sortColumn: 1, sortAscending: false});
+			drawPieChart("div#pieGroups", "Time per category", groups.filter(function(group) { return group[0] !== "Idle"; }));
+			drawPieChart("div#pieEvents", "Time per processing event", processing.filter(function(event) { return event[0] !== "Idle"; }));
+			drawPieChart("div#pieGroupsIdle", "Time per category", groups);
+			drawPieChart("div#pieEventsIdle", "Time per processing event", processing);
 
-            var pieGroups = new google.visualization.PieChart(document.getElementById('pieGroups'));
-            google.visualization.events.addListener(pieGroups, 'ready', function(){markUserTime('aft.Groups Pie');});
-            pieGroups.draw(viewGroups, {width: 450, height: 300, title: 'Processing Categories', colors: groupColors});
-
-            
-            var viewEvents = new google.visualization.DataView(events);
-            viewEvents.setColumns([0, 1]);
-            
-            var tableEvents = new google.visualization.Table(document.getElementById('tableEvents'));
-            tableEvents.draw(viewEvents, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-
-            var pieEvents = new google.visualization.PieChart(document.getElementById('pieEvents'));
-            google.visualization.events.addListener(pieEvents, 'ready', function(){markUserTime('aft.Events Pie');});
-            pieEvents.draw(viewEvents, {width: 450, height: 300, title: 'Processing Events', colors: eventColors});
-
-
-            var groupsIdle = new google.visualization.DataTable();
-            groupsIdle.addColumn('string', 'Category');
-            groupsIdle.addColumn('number', 'Time (ms)');
-            groupsIdle.addRows(<?php echo count($groups); ?>);
-            var groupColors = new Array();
-
-            var eventsIdle = new google.visualization.DataTable();
-            eventsIdle.addColumn('string', 'Event');
-            eventsIdle.addColumn('number', 'Time (ms)');
-            eventsIdle.addRows(<?php echo count($processing); ?>);
-            var eventColors = new Array();
-            <?php
-            $index = 0;
-            if (isset($groups) && is_array($groups) && count($groups)) {
-              foreach($groups as $type => $time)
-              {
-                  echo "groupsIdle.setValue($index, 0, '$type');\n";
-                  echo "groupsIdle.setValue($index, 1, $time);\n";
-                  $color = $groupColors[$type];
-                  echo "groupColors.push('$color');\n";
-                  $index++;
-              }
-            }
-            $index = 0;
-            if (isset($processing) && is_array($processing) && count($processing)) {
-              foreach($processing as $type => $time)
-              {
-                  echo "eventsIdle.setValue($index, 0, '$type');\n";
-                  echo "eventsIdle.setValue($index, 1, $time);\n";
-                  $group = 'Other';
-                  if (array_key_exists($type, $mapping))
-                    $group = $mapping[$type];
-                  $color = $groupColors[$group];
-                  echo "eventColors.push('$color');\n";
-                  $index++;
-              }
-            }
-            ?>
-            var viewGroupsIdle = new google.visualization.DataView(groupsIdle);
-            viewGroupsIdle.setColumns([0, 1]);
-            
-            var tableGroupsIdle = new google.visualization.Table(document.getElementById('tableGroupsIdle'));
-            tableGroupsIdle.draw(viewGroupsIdle, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-
-            var pieGroupsIdle = new google.visualization.PieChart(document.getElementById('pieGroupsIdle'));
-            pieGroupsIdle.draw(viewGroupsIdle, {width: 450, height: 300, title: 'Processing Categories', colors: groupColors});
-
-            
-            var viewEventsIdle = new google.visualization.DataView(eventsIdle);
-            viewEventsIdle.setColumns([0, 1]);
-            
-            var tableEventsIdle = new google.visualization.Table(document.getElementById('tableEventsIdle'));
-            tableEventsIdle.draw(viewEventsIdle, {showRowNumber: false, sortColumn: 1, sortAscending: false});
-
-            var pieEventsIdle = new google.visualization.PieChart(document.getElementById('pieEventsIdle'));
-            pieEventsIdle.draw(viewEventsIdle, {width: 450, height: 300, title: 'Processing Events', colors: eventColors});
+			drawDataTable("#tableGroups", ["Category", "Time (ms)"], groups.filter(function(group) { return group[0] !== "Idle"; }));
+			drawDataTable("#tableEvents", ["Event", "Time (ms)"], processing.filter(function(event) { return event[0] !== "Idle"; }));
+			drawDataTable("#tableGroupsIdle", ["Event", "Time (ms)"], groups);
+			drawDataTable("#tableEventsIdle", ["Event", "Time (ms)"], processing);
         }
+        drawTable();
         </script>
     </body>
 </html>
